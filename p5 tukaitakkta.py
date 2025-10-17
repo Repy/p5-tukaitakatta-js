@@ -274,7 +274,7 @@ class player_marker(aruco_entity):
                 push_checker(player_chege_point(self.now_point),self)#この50は赤青手足マークの大体の直径である。
 
     def action(self):
-        comment_list[random.randint(0,len(comment_list) - 1)].make(self.draw_point)
+        random.choice(comment_list).make(self.draw_point)
         count_result.touch()
         #音を出す。
 
@@ -298,8 +298,6 @@ class coment_text:
         self.clear -= 1
         if self.clear < 0:
             self.clear = 0
-
-                
 
 def count_checker():
     for i in set_entity_list:
@@ -392,10 +390,11 @@ class start_button_entity(menu_entity):
     def action(self):
         self.now_clear += 3
         if self.now_clear > 255:
-            self.now_clear = 255
+            self.now_clear = 0
             global mode
             global circle_time
             mode = self.mode_seter
+            count_timer.reset(10)
 
             if difficulty_level == "easy":
                 circle_time = 7
@@ -428,24 +427,29 @@ def text_draw(text,font,draw_point,get_color = None):
 
 
 class counter:
-    def __init__(self,count_time):
-        self.defa_time = count_time
-        self.count_time = self.defa_time
+    def __init__(self):
+        self.count_time = -1
 
     def count(self):
-        if self.count_time < 1:
+        self.count_time -= 1
+        if self.count_time < 0:
             return True
-
         else:
-            self.count_time -= 1
             return False
         
+    def reset(self, count_time):
+        self.count_time = count_time
+
     def draw(self):
-        text_draw(self.count_time,pygame.font.Font(None, 100),(w / 20 * 18,h / 20 * 1))
+        if self.count_time >= 0:
+            text_draw(self.count_time,pygame.font.Font(None, 100),(w / 20 * 18,h / 20 * 1))
 
         
 class play_result:
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.combo = 0
         self.get_touch = 0
         self.miss_touch = 0
@@ -594,7 +598,7 @@ back_entity_list = [
 menu_entity_list = level_entity_list + start_button_list + back_entity_list #メニューモードで使うリスト
 
 
-count_timer = counter(60)#play時間を指定
+count_timer = counter()
 
 
 count_result = play_result()
@@ -669,17 +673,23 @@ while running:
         if scan_count % fps == 0:
             if count_timer.count():
                 mode = "end"
-
-        count_timer.draw()
+                count_timer.reset(10)
 
         for i in comment_list:
             i.draw()
 
     elif mode == "end":
+        if scan_count % fps == 0:
+            if count_timer.count():
+                mode = "menu"
+                count_result.reset()
+
         count_result.draw()    
 
     for e in set_entity_list:
         e.draw(mode)
+
+    count_timer.draw()
 
     screen.blit(back_surface,(0,0))
 
