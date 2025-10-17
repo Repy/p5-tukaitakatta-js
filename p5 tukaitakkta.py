@@ -48,7 +48,7 @@ fps = 50#一秒間に画面更新をする回数
 
 split_varue = 20 #円が出てくるマス目の細かさ
 
-use_aruco = True #True:設定したarucoマーカを追尾　False:マウスカードルを追尾
+use_aruco = False #True:設定したarucoマーカを追尾　False:マウスカードルを追尾
 
 comment_size = 200 #コメントのサイズを指定する
 comment_file_list = ["good.png"] #コメントのバリエーション　追加可能
@@ -163,35 +163,32 @@ def player_chege_point(player):
     right_bottom = (0,0)
     left_bottom = (0,0)
 
-    if use_aruco:
-        for i in edge_marker_list:
-            if i.name == "left_top":
-                left_top = i.now_point
-            if i.name == "right_top":
-                right_top = i.now_point
-            if i.name == "right_buttom":
-                right_bottom = i.now_point
-            if i.name == "left_buttom":
-                left_bottom = i.now_point
-        print(f"四隅の座標 :{left_top,right_top,right_bottom,left_bottom}")
+    for i in edge_marker_list:
+        if i.name == "left_top":
+            left_top = i.now_point
+        if i.name == "right_top":
+            right_top = i.now_point
+        if i.name == "right_buttom":
+            right_bottom = i.now_point
+        if i.name == "left_buttom":
+            left_bottom = i.now_point
+    # print(f"四隅の座標 :{left_top,right_top,right_bottom,left_bottom}")
 
-        left_x = change_x(left_top,left_bottom,player)
-        right_x = change_x(right_top,right_bottom,player)
+    left_x = change_x(left_top,left_bottom,player)
+    right_x = change_x(right_top,right_bottom,player)
 
-        mouse_x = int(w * 0.8 * (player[0] - left_x) / (right_x - left_x) + w * 0.1)
+    mouse_x = int(w * 0.8 * (player[0] - left_x) / (right_x - left_x) + w * 0.1)
 
-        #print(f"横 :{left_x,player[0],right_x, mouse_x}")
+    # print(f"横 :{left_x,player[0],right_x, mouse_x}")
 
-        top_y = change_y(left_top,right_top,player)
-        bottom_y = change_y(left_bottom,right_bottom,player)
+    top_y = change_y(left_top,right_top,player)
+    bottom_y = change_y(left_bottom,right_bottom,player)
 
-        mouse_y = int(h * 0.8 * (player[1] -  top_y) / (bottom_y - top_y) + h * 0.1)
+    mouse_y = int(h * 0.8 * (player[1] -  top_y) / (bottom_y - top_y) + h * 0.1)
 
-        #print(f"縦 :{top_y,player[1],bottom_y, mouse_y}")
+    #print(f"縦 :{top_y,player[1],bottom_y, mouse_y}")
 
-        return mouse_x , mouse_y
-    else:
-        return player
+    return mouse_x , mouse_y
 
 def image_maker(img_name,size):
     img = pygame.image.load(img_name)
@@ -277,16 +274,12 @@ class player_marker(aruco_entity):
                 push_checker(player_chege_point(self.now_point),self)#この50は赤青手足マークの大体の直径である。
 
     def action(self):
-        if len(comment_list) == 1:
-            comment_list[0].make(self.draw_point)
-        else:
-            comment_list[random.randint(0,len(comment_list) - 1)].make(self.draw_point)
-            count_result.touch()
+        comment_list[random.randint(0,len(comment_list) - 1)].make(self.draw_point)
+        count_result.touch()
         #音を出す。
 
     def back_action(self):
         count_result.miss()
-
 
 class coment_text:
     def __init__(self,img_name):
@@ -295,7 +288,6 @@ class coment_text:
         self.clear = 0
 
     def make(self,draw_point):
-        p("叩いてるよ","n")
         self.draw_point = draw_point
         self.clear = 255
 
@@ -306,8 +298,6 @@ class coment_text:
         self.clear -= 1
         if self.clear < 0:
             self.clear = 0
-
-        p("叩いてる","n")
 
                 
 
@@ -488,7 +478,6 @@ def push_checker(cursor,entity):
 
     if a_x <= c_x <= t_x and a_y <= c_y <= t_y:
         entity.action()
-
     else:
         entity.back_action()
 
@@ -537,7 +526,15 @@ def scan_manager(scan_count,mode):
                                     j.set_now_point(ave)
     else:
         for j in set_entity_list:
-            if j.marker_id == 6:
+            if j.marker_id == 1:
+                j.set_now_point((50,50)) # left_top
+            if j.marker_id == 2:
+                j.set_now_point((750,50)) # right_top
+            if j.marker_id == 3:
+                j.set_now_point((750,450)) # right_buttom
+            if j.marker_id == 4:
+                j.set_now_point((50,450)) # left_buttom
+            if j.marker_id >= 5:
                 j.set_now_point(pygame.mouse.get_pos())
 
 
@@ -647,11 +644,7 @@ while running:
     scan_manager(scan_count, mode)#setmodeの時だけ妥協でカメラの画像を出力する。
 
     if mode == "set":
-        if use_aruco:
-            if count_checker():
-                mode = "menu"
-
-        else:
+        if count_checker():
             mode = "menu"
 
     elif mode == "menu":
