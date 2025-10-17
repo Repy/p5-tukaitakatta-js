@@ -48,7 +48,7 @@ fps = 50#一秒間に画面更新をする回数
 
 split_varue = 20 #円が出てくるマス目の細かさ
 
-use_aruco = False #True:設定したarucoマーカを追尾　False:マウスカードルを追尾
+use_aruco = True #True:設定したarucoマーカを追尾　False:マウスカードルを追尾
 
 comment_size = 200 #コメントのサイズを指定する
 comment_file_list = ["good.png"] #コメントのバリエーション　追加可能
@@ -394,7 +394,7 @@ class start_button_entity(menu_entity):
             global mode
             global circle_time
             mode = self.mode_seter
-            count_timer.reset(10)
+            count_timer.reset(60)
 
             if difficulty_level == "easy":
                 circle_time = 7
